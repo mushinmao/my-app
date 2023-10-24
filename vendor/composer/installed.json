@@ -1,0 +1,74 @@
+{
+    "packages": [
+        {
+            "name": "josantonius/json",
+            "version": "v2.0.8",
+            "version_normalized": "2.0.8.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/josantonius/php-json.git",
+                "reference": "617c10650ba03597b4294e1c4984f27df20958ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/josantonius/php-json/zipball/617c10650ba03597b4294e1c4984f27df20958ef",
+                "reference": "617c10650ba03597b4294e1c4984f27df20958ef",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "phpmd/phpmd": "^2.6",
+                "phpunit/phpunit": "^9.5",
+                "squizlabs/php_codesniffer": "^3.7"
+            },
+            "time": "2023-01-11T05:26:07+00:00",
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Josantonius\\Json\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Josantonius",
+                    "email": "hello@josantonius.dev",
+                    "homepage": "https://josantonius.dev",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP simple library for managing Json files.",
+            "keywords": [
+                "array-to-file",
+                "file-to-array",
+                "json",
+                "php"
+            ],
+            "support": {
+                "discussions": "https://github.com/josantonius/php-json/discussions",
+                "issues": "https://github.com/josantonius/php-json/issues",
+                "source": "https://github.com/josantonius/php-json"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Josantonius",
+                    "type": "github"
+                }
+            ],
+            "install-path": "../josantonius/json"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

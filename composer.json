@@ -1,0 +1,14 @@
+{
+  "autoload": {
+    "psr-4": {
+      "App\\": "src",
+      "Core\\": "src/Core",
+      "Config\\": "src/Core/Config"
+    }
+  },
+  "require": {
+    "ext-readline": "*",
+    "josantonius/json": "^2.0",
+    "ext-curl": "*"
+  }
+}
