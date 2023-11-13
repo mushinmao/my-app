@@ -27,16 +27,16 @@ return [
         'arguments' => [__DIR__.'/../data/database.json'],
     ],
 
-    'shortener' => [
+    'url_converter' => [
         'class' => \App\UrlConverter\UrlConverter::class,
         'arguments' => [
-            '@shortener_coder',
-            '@shortener_randomizer',
-            '@shortener_validator'
+            '@coder',
+            '@randomizer',
+            '@url_validator'
         ],
     ],
 
-    'shortener_randomizer' => [
+    'randomizer' => [
         'class' => \App\Randomizer\Randomizer::class,
         'arguments' => ['$randomizer.chars'],
         'calls' => [
@@ -47,11 +47,11 @@ return [
         ],
     ],
 
-    'shortener_coder' => [
+    'coder' => [
         'class' => \App\Coder\StringCoder::class,
     ],
 
-    'shortener_validator' => [
+    'url_validator' => [
         'class' => \App\UrlValidator\UrlValidator::class,
     ],
 
