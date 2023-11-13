@@ -15,5 +15,20 @@ services:
       PHP_IDE_CONFIG: serverName=docker
     volumes:
       - ./:${WORKDIR}
-      - ./data:/srv/src/app/data
+      - ./mails:/var/www/mail
+    links:
+      - db_mysql
 
+  db_mysql:
+    image: mysql:latest
+    container_name: mysql_${PROJECT_NAME}
+    ports:
+      - ${MYSQL_PORT}:3306
+    environment:
+      WORKDIR: ${WORKDIR}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123}
+      MYSQL_DATABASE:  ${MYSQL_DATABASE:-db}
+      MYSQL_USER:  ${MYSQL_USER:-root}
+      MYSQL_PASSWORD:  ${MYSQL_PASSWORD:-pass}
+    volumes:
+      - ./docker/databases/mysql_dump:/docker-entrypoint-initdb.d

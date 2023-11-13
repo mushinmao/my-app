@@ -2,25 +2,31 @@
 
 namespace Core\Container;
 
+
 use Closure;
 use Core\Container\Aggregator\ServiceAggregator;
+use Core\Container\Enum\MethodTypes;
 use Core\Container\Interface\ContainerInterface;
 use Core\Exceptions\ContainerException;
-use Core\Exceptions\NotFoundException;
 use Core\Exceptions\ParameterNotFoundException;
+use Core\Exceptions\ServiceClassUndefinedException;
 use Core\Exceptions\ServiceNotFoundException;
 use ReflectionClass;
 use ReflectionException;
 
 class Container implements ContainerInterface
 {
-    protected array $services;
-    protected array $readyServices;
+    /**
+     * @var ServiceAggregator[] $serviceStorage
+     */
+    protected array $serviceStorage;
+    protected array $compiled;
     protected array $tags;
 
-    public function __construct(array $services, protected ContainerInterface $parameters)
+
+    public function __construct(array $services, protected ContainerInterface $configStorage)
     {
-        $this->addServiceObjects($services);
+        $this->storeServices($services);
         $this->checkTagsList();
     }
 
@@ -28,51 +34,44 @@ class Container implements ContainerInterface
      * @param string $id
      * @return object
      * @throws ContainerException
-     * @throws NotFoundException
      * @throws ReflectionException
+     * @throws ServiceClassUndefinedException
      * @throws ServiceNotFoundException
      */
     public function get(string $id): object
     {
-        try {
-            $result = $this->parameters->get($id);
+        if (!$this->has($id)) {
+            throw new ServiceNotFoundException("Service $id not found");
         }
 
-        catch (ParameterNotFoundException) {
-            if (!$this->has($id)) {
-                throw new NotFoundException("Service $id not found");
-            }
-
-            $result = $this->buildService($id);
-        }
-
-        return $result;
+        return $this->compile($id);
     }
 
     /**
-     * @inheritDoc
+     * @param string $id
+     * @return bool
      */
     public function has(string $id): bool
     {
-        return isset($this->services[$id]);
+        return isset($this->serviceStorage[$id]);
     }
 
     /**
      * @param string $id
      * @return array
      * @throws ContainerException
-     * @throws NotFoundException
      * @throws ReflectionException
+     * @throws ServiceClassUndefinedException
      * @throws ServiceNotFoundException
      */
-    public function getByTag(string $id): array
+    public function getByTag (string $id): array
     {
-        if (!isset($this->tags[$id])) {
+        if (!isset($this->tagsStore[$id])) {
             throw new ServiceNotFoundException('Tag not found: ' . $id);
         }
 
         $services = [];
-        foreach ($this->tags[$id] as $serviceName) {
+        foreach ($this->tagsStore[$id] as $serviceName) {
             $services[] = $this->get($serviceName);
         }
 
@@ -80,13 +79,24 @@ class Container implements ContainerInterface
     }
 
     /**
+     * @param string $id
+     * @return mixed
+     * @throws ContainerException
+     * @throws ParameterNotFoundException
+     */
+    public function getParam(string $id): mixed
+    {
+        return $this->configStorage->get($id);
+    }
+
+    /**
      * @param array $services
      * @return $this
      */
-    protected function addServiceObjects(array $services): self
+    protected function storeServices(array $services): self
     {
         foreach ($services as $name => $data) {
-            $this->services[$name] = ServiceAggregator::createServiceObject($name, $data);
+            $this->serviceStorage[$name] = ServiceAggregator::createServiceObject($name, $data);
         }
 
         return $this;
@@ -97,17 +107,14 @@ class Container implements ContainerInterface
      * @return object
      * @throws ContainerException
      * @throws ReflectionException
-     * @throws ServiceNotFoundException
+     * @throws ServiceClassUndefinedException
      */
-    protected function buildService(string $name): object
+    protected function compile(string $name): object
     {
-        /**
-         * @var ServiceAggregator $entity
-         */
-        $entity = $this->services[$name];
+        $entity = $this->serviceStorage[$name];
 
         if (!class_exists($entity->getClass())) {
-            throw new ServiceNotFoundException($name . ' service class does not exist: ' . $entity->getClass());
+            throw new ServiceClassUndefinedException($name . ' service class does not exist: ' . $entity->getClass());
         }
 
         elseif ($entity->isLock()) {
@@ -127,79 +134,14 @@ class Container implements ContainerInterface
         }
 
         if ($entity->hasCalls()) {
-                $this->executeCall($service, $entity);
+            $this->executeCall($service, $entity);
         }
 
-        $this->executeCompiler($service, $entity, $entity->getCompiler());
+        $this->executeClosure($service, $entity, $entity->getCompiler());
 
-        $this->readyServices[$name] = $service;
+        $this->compiled[$name] = $service;
 
         return $service;
-    }
-
-    /**
-     * @param array $args
-     * @return array
-     * @throws ReflectionException
-     */
-    protected function resolveArguments(array $args) : array
-    {
-       $resolved = [];
-
-        foreach ($args as $arg) {
-            if (!$this->has($arg)) {
-                $resolved[] = $arg;
-            }
-
-            else {
-                try {
-                    $resolved[] = $this->buildService($arg);
-                }
-
-                catch (ContainerException) {
-                    $resolved[] = $this->readyServices[$arg];
-                }
-            }
-        }
-
-        return $resolved;
-    }
-    /**
-     * @param object $service
-     * @param ServiceAggregator $entity
-     * @return void
-     * @throws ContainerException
-     */
-    protected function executeCall(object $service, ServiceAggregator $entity): void
-    {
-        foreach ($entity->getCalls() as $call) {
-
-            if (!is_callable([$service, $call->getMethod()])) {
-                throw new ContainerException($entity->getName() . ' service asks for call to uncallable method: ' . $call->getMethod());
-            }
-
-            $arguments = $call->getArguments();
-
-            call_user_func_array([$service, $call->getMethod()], $arguments);
-        }
-    }
-
-    /**
-     * @param object $service
-     * @param ServiceAggregator $entity
-     * @param Closure $compiler
-     * @return void
-     * @throws ContainerException
-     */
-    protected function executeCompiler(object $service, ServiceAggregator $entity, Closure $compiler): void
-    {
-        try {
-            $compiler($this, $service, $entity);
-        }
-
-        catch (\Exception $e) {
-            throw new ContainerException('Container compiler error: ' . $e->getMessage(), $e->getCode(), $e);
-        }
     }
 
     /**
@@ -225,14 +167,77 @@ class Container implements ContainerInterface
     }
 
     /**
+     * @param object $service
+     * @param ServiceAggregator $entity
+     * @return void
+     * @throws ContainerException
+     */
+    protected function executeCall(object $service, ServiceAggregator $entity): void
+    {
+        foreach ($entity->getCalls() as $call) {
+
+            if (!is_callable([$service, $call->getMethod()])) {
+                throw new ContainerException($entity->getName() . ' service asks for call to uncallable method: ' . $call->getMethod());
+            }
+
+            $arguments = $this->resolveArguments($call->getArguments());
+
+            call_user_func_array([$service, $call->getMethod()], $arguments);
+        }
+    }
+
+    /**
+     * @param object $service
+     * @param ServiceAggregator $entity
+     * @param Closure $closure
+     * @return void
+     * @throws ContainerException
+     */
+    protected function executeClosure(object $service, ServiceAggregator $entity, Closure $closure): void
+    {
+        try {
+            $closure($this, $service, $entity);
+        }
+
+        catch (\Exception $e) {
+            throw new ContainerException('Container compiler error: ' . $e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @param array $args
+     * @return array
+     */
+    protected function resolveArguments(array $args): array
+    {
+       $resolved = [];
+
+        foreach ($args as $arg) {
+            $resolved[] = $this->resolveArgType($arg);
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * @param mixed $argument
+     * @return mixed
+     */
+    protected function resolveArgType(mixed $argument): mixed
+    {
+        $method = MethodTypes::getMethodByType(substr($argument, 0,1))->value;
+
+        $arg = substr($argument, 1);
+
+        return $this->{$method}($arg);
+    }
+
+    /**
      * @return void
      */
     protected function checkTagsList(): void
     {
-        /**
-         * @var ServiceAggregator $service
-         */
-        foreach ($this->services as $service) {
+        foreach ($this->serviceStorage as $service) {
             if ($service->hasTags()) {
                 $this->addTagsToList($service->getName(), $service->getTags());
             }
@@ -242,6 +247,7 @@ class Container implements ContainerInterface
     /**
      * @param string $id
      * @param array $tags
+     * @return void
      */
     protected function addTagsToList(string $id, array $tags): void
     {

@@ -24,29 +24,25 @@ return [
 
     'json' => [
         'class' => \Josantonius\Json\Json::class,
-        'arguments' => [
-            __DIR__.'/../data/database.json'
-        ],
+        'arguments' => [__DIR__.'/../data/database.json'],
     ],
 
     'shortener' => [
         'class' => \App\UrlConverter\UrlConverter::class,
         'arguments' => [
-            'shortener_coder',
-            'shortener_randomizer',
-            'shortener_validator'
+            '@shortener_coder',
+            '@shortener_randomizer',
+            '@shortener_validator'
         ],
     ],
 
     'shortener_randomizer' => [
         'class' => \App\Randomizer\Randomizer::class,
-        'arguments' => [
-            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        ],
+        'arguments' => ['$randomizer.chars'],
         'calls' => [
             [
                 'method' => 'setLength',
-                'arguments' => [8],
+                'arguments' => ['$randomizer.length'],
             ],
         ],
     ],
@@ -57,5 +53,18 @@ return [
 
     'shortener_validator' => [
         'class' => \App\UrlValidator\UrlValidator::class,
+    ],
+
+    'db_manager' => [
+        'class' => \Illuminate\Database\Capsule\Manager::class,
+        'calls' => [
+            [
+                'method' => 'addConnection',
+                'arguments' => ['$eloquent_config'],
+            ],
+            [
+                'method' => 'bootEloquent',
+            ],
+        ]
     ],
 ];
