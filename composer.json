@@ -9,6 +9,7 @@
   "require": {
     "ext-readline": "*",
     "josantonius/json": "^2.0",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "illuminate/database": "10.*"
   }
 }

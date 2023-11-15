@@ -32,7 +32,7 @@ class ServiceAggregator
     {
         foreach ($calls as $call)
         {
-            $this->calls[] = new ServiceMethods($this, $call['method'], $call['arguments']);
+            $this->calls[] = new ServiceMethods($this, $call['method'], $call['arguments'] ?? ['']);
         }
     }
 

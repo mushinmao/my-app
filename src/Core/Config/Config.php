@@ -4,7 +4,6 @@ namespace Config;
 
 use Core\Container\Interface\ContainerInterface;
 use Core\Exceptions\ContainerException;
-use Core\Exceptions\NotFoundException;
 use Core\Exceptions\ParameterNotFoundException;
 use Core\Interface\SingletonInterface;
 use Core\Trait\Singletonable;
@@ -22,6 +21,7 @@ class Config implements ContainerInterface, SingletonInterface
     {
         try {
             $result = true;
+
             $this->getRealPath($id);
         }
 
@@ -33,7 +33,9 @@ class Config implements ContainerInterface, SingletonInterface
     }
 
     /**
-     * @inheritDoc
+     * @param string $id
+     * @return mixed
+     * @throws ParameterNotFoundException
      */
     public function get(string $id): mixed
     {
@@ -44,7 +46,7 @@ class Config implements ContainerInterface, SingletonInterface
      * @param string $name
      * @return mixed
      * @throws ContainerException
-     * @throws NotFoundException
+     * @throws ParameterNotFoundException
      */
     public function __get(string $name)
     {
@@ -58,6 +60,7 @@ class Config implements ContainerInterface, SingletonInterface
     public function addConfigs(array $configs) : self
     {
         $this->config = array_merge($this->config, $configs);
+
         return $this;
     }
 
@@ -69,6 +72,7 @@ class Config implements ContainerInterface, SingletonInterface
     protected function getRealPath(string $id): mixed
     {
         $tokens = explode('.', $id);
+
         $context = $this->config;
 
         while (null !== ($token = array_shift($tokens))) {
@@ -78,6 +82,7 @@ class Config implements ContainerInterface, SingletonInterface
 
             $context = $context[$token];
         }
+
         return $context;
     }
 }

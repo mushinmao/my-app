@@ -24,38 +24,56 @@ return [
 
     'json' => [
         'class' => \Josantonius\Json\Json::class,
-        'arguments' => [
-            __DIR__.'/../data/database.json'
-        ],
+        'arguments' => [__DIR__.'/../data/database.json'],
     ],
 
-    'shortener' => [
+    'url_converter' => [
         'class' => \App\UrlConverter\UrlConverter::class,
         'arguments' => [
-            'shortener_coder',
-            'shortener_randomizer',
-            'shortener_validator'
+            '@coder',
+            '@randomizer',
+            '@url_validator'
         ],
     ],
 
-    'shortener_randomizer' => [
+    'randomizer' => [
         'class' => \App\Randomizer\Randomizer::class,
-        'arguments' => [
-            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        ],
+        'arguments' => ['$randomizer.chars'],
         'calls' => [
             [
                 'method' => 'setLength',
-                'arguments' => [8],
+                'arguments' => ['$randomizer.length'],
             ],
         ],
     ],
 
-    'shortener_coder' => [
+    'coder' => [
         'class' => \App\Coder\StringCoder::class,
     ],
 
-    'shortener_validator' => [
+    'url_validator' => [
         'class' => \App\UrlValidator\UrlValidator::class,
+    ],
+
+    'db_manager' => [
+        'class' => \Illuminate\Database\Capsule\Manager::class,
+        'calls' => [
+            [
+                'method' => 'addConnection',
+                'arguments' => ['$eloquent_config'],
+            ],
+            [
+                'method' => 'bootEloquent',
+            ],
+        ]
+    ],
+
+    'shortener_provider' => [
+        'class' => \App\API\EloquentAPI\ShortenerBridge::class,
+    ],
+
+    'shortener' => [
+        'class' => \App\AppUrlShortener\Shortener::class,
+        'arguments' => ['@shortener_provider', '@url_converter']
     ],
 ];
