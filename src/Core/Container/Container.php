@@ -213,10 +213,6 @@ class Container implements ContainerInterface
        $resolved = [];
 
         foreach ($args as $arg) {
-            if (empty($arg)) {
-                continue;
-            }
-
             $resolved[] = $this->resolveArgType($arg);
         }
 

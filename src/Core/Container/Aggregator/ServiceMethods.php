@@ -28,11 +28,12 @@ class ServiceMethods
         return $this->method;
     }
 
+
     /**
-     * @return array
+     * @return array|null
      */
-    public function getArguments(): array
+    public function getArguments(): array|null
     {
-        return $this->arguments ?? [];
+        return $this->arguments;
     }
 }
