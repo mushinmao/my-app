@@ -67,4 +67,13 @@ return [
             ],
         ]
     ],
+
+    'shortener_provider' => [
+        'class' => \App\API\EloquentAPI\ShortenerBridge::class,
+    ],
+
+    'shortener' => [
+        'class' => \App\AppUrlShortener\Shortener::class,
+        'arguments' => ['@shortener_provider', '@url_converter']
+    ],
 ];

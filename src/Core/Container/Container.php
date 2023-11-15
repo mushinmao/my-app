@@ -126,11 +126,11 @@ class Container implements ContainerInterface
         $arguments = $this->resolveArguments($entity->getArguments());
 
         if ($entity->hasComposition()) {
-            $service = $this->createObjectFromReflection($entity->getCompositionParentClass(), $arguments, $entity->getCompositionParentMethod());
+            $service = $this->compileObject($entity->getCompositionParentClass(), $arguments, $entity->getCompositionParentMethod());
         }
 
         else {
-            $service = $this->createObjectFromReflection($entity->getClass(), $arguments);
+            $service = $this->compileObject($entity->getClass(), $arguments);
         }
 
         if ($entity->hasCalls()) {
@@ -147,11 +147,11 @@ class Container implements ContainerInterface
     /**
      * @param string $class_name
      * @param array $arguments
-     * @param string $method
+     * @param ?string $method
      * @return object
      * @throws ReflectionException
      */
-    protected function createObjectFromReflection(string $class_name, array $arguments = [], string $method = '') : object
+    protected function compileObject(string $class_name, array $arguments = [], string $method = null) : object
     {
         $class = new ReflectionClass($class_name);
 
@@ -213,6 +213,10 @@ class Container implements ContainerInterface
        $resolved = [];
 
         foreach ($args as $arg) {
+            if (empty($arg)) {
+                continue;
+            }
+
             $resolved[] = $this->resolveArgType($arg);
         }
 

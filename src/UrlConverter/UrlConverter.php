@@ -2,14 +2,17 @@
 
 namespace App\UrlConverter;
 
+use App\AppUrlShortener\Interface\ConverterInterface;
 use App\Randomizer\Interface\RandomizerInterface;
 use App\UrlConverter\Interface\EncoderInterface;
 use App\UrlConverter\Interface\ValidatorInterface;
 use App\UrlValidator\Exception\InvalidUrlException;
 use App\UrlValidator\Exception\InvalidUrlStatusException;
 
-class UrlConverter
+class UrlConverter implements ConverterInterface
 {
+    protected string $shortLink;
+
     /**
      * @param EncoderInterface $coder
      * @param RandomizerInterface $randomizer
@@ -24,10 +27,9 @@ class UrlConverter
 
     /**
      * @param string $url
-     * @param string|null $concreteShortUrl
      * @return array
      */
-    public function createUrlData(string $url, ?string $concreteShortUrl = null) : array
+    public function convert(string $url): array
     {
         try {
             $this->validator->validate($url);
@@ -37,10 +39,19 @@ class UrlConverter
             echo $e->getMessage();
         }
 
-        $shortUrl = $concreteShortUrl ?? $this->randomizer->randomize();
+        $shortUrl = $this->shortLink ?? $this->randomizer->randomize();
 
-        $code = $this->coder->encode($url);
+        $hash = $this->coder->encode($url);
 
-        return ['code' => $code, 'url' => $url, 'short' => $shortUrl];
+        return ['hash' => $hash, 'url' => $url, 'code' => $shortUrl];
+    }
+
+    /**
+     * @param string $name
+     * @return void
+     */
+    public function setShortLink(string $name): void
+    {
+        $this->shortLink = $name;
     }
 }

@@ -4,7 +4,7 @@ WORKDIR ${WORKDIR}
 
 RUN apt-get -y update && apt-get -y install git unzip rsync
 
-#RUN docker-php-ext-install pdo pdo_mysql gd
+RUN docker-php-ext-install pdo pdo_mysql
 
 RUN pecl install xdebug && docker-php-ext-enable xdebug;
 COPY ./docker/configs/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini

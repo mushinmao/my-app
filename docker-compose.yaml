@@ -26,9 +26,22 @@ services:
       - ${MYSQL_PORT}:3306
     environment:
       WORKDIR: ${WORKDIR}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123}
-      MYSQL_DATABASE:  ${MYSQL_DATABASE:-db}
-      MYSQL_USER:  ${MYSQL_USER:-root}
-      MYSQL_PASSWORD:  ${MYSQL_PASSWORD:-pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE:  ${MYSQL_DATABASE:-base}
+      MYSQL_USER:  ${MYSQL_USER:-dbuser}
+      MYSQL_PASSWORD:  ${MYSQL_PASSWORD:-pass4dbuser}
     volumes:
       - ./docker/databases/mysql_dump:/docker-entrypoint-initdb.d
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_${PROJECT_NAME}
+    ports:
+      - ${HTTP_PORT}:80
+      - ${HTTPS_PORT}:443
+    volumes:
+      - ./:${WORKDIR}
+      - ./docker/configs/nginx:/etc/nginx/conf.d
+      - ./var/logs/nginx:/var/log/nginx
+    links:
+      - php
