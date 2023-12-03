@@ -13,7 +13,7 @@ enum MethodTypes: string
         return match ($type) {
           '@' => self::Object,
           '$' => self::Parameter,
-          '&' => self::Tag
+          '&' => self::Tag,
         };
     }
 }

@@ -30,9 +30,9 @@ class ServiceMethods
 
 
     /**
-     * @return array|null
+     * @return array
      */
-    public function getArguments(): array|null
+    public function getArguments(): array
     {
         return $this->arguments;
     }
