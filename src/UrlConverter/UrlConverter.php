@@ -2,14 +2,13 @@
 
 namespace App\UrlConverter;
 
-use App\AppUrlShortener\Interface\ConverterInterface;
 use App\Randomizer\Interface\RandomizerInterface;
 use App\UrlConverter\Interface\EncoderInterface;
 use App\UrlConverter\Interface\ValidatorInterface;
 use App\UrlValidator\Exception\InvalidUrlException;
 use App\UrlValidator\Exception\InvalidUrlStatusException;
 
-class UrlConverter implements ConverterInterface
+class UrlConverter
 {
     protected string $shortLink;
 
@@ -53,5 +52,10 @@ class UrlConverter implements ConverterInterface
     public function setShortLink(string $name): void
     {
         $this->shortLink = $name;
+    }
+
+    public function setShortLinkLength(int $length): void
+    {
+        $this->randomizer->setLength($length);
     }
 }

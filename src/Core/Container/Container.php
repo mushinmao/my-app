@@ -13,6 +13,7 @@ use Core\Exceptions\ServiceClassUndefinedException;
 use Core\Exceptions\ServiceNotFoundException;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionObject;
 
 class Container implements ContainerInterface
 {
@@ -126,7 +127,7 @@ class Container implements ContainerInterface
         $arguments = $this->resolveArguments($entity->getArguments());
 
         if ($entity->hasComposition()) {
-            $service = $this->compileObject($entity->getCompositionParentClass(), $arguments, $entity->getCompositionParentMethod());
+            $service = $this->compileComposition($entity->getCompositionParentClass(), $entity->getCompositionParentMethod());
         }
 
         else {
@@ -147,23 +148,21 @@ class Container implements ContainerInterface
     /**
      * @param string $class_name
      * @param array $arguments
-     * @param ?string $method
      * @return object
      * @throws ReflectionException
      */
-    protected function compileObject(string $class_name, array $arguments = [], string $method = null) : object
+    protected function compileObject(string $class_name, array $arguments = []) : object
     {
         $class = new ReflectionClass($class_name);
 
-        if (!empty($method)) {
-            $object = $class->getMethod($method)->invoke($class->newInstanceArgs($arguments));
-        }
+        return $class->newInstanceArgs($arguments);
+    }
 
-        else {
-            $object = $class->newInstanceArgs($arguments);
-        }
+    protected function compileComposition(string $parent, string $method) : object
+    {
+        $resolveArgType = $this->resolveArgType($parent);
 
-        return $object;
+        return call_user_func_array([$resolveArgType, $method], []);
     }
 
     /**

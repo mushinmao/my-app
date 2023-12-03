@@ -55,25 +55,26 @@ return [
         'class' => \App\UrlValidator\UrlValidator::class,
     ],
 
-    'db_manager' => [
-        'class' => \Illuminate\Database\Capsule\Manager::class,
-        'calls' => [
-            [
-                'method' => 'addConnection',
-                'arguments' => ['$eloquent_config'],
-            ],
-            [
-                'method' => 'bootEloquent',
-            ],
+    'doctrine_creator' => [
+        'class' => \App\Database\Doctrine\DoctrineORM::class,
+        'arguments' => [
+            '$database.name',
+            '$database.username',
+            '$database.password',
+            '$database.host',
+            '$database.isDevMode',
+            '$database.driver',
         ]
     ],
 
-    'shortener_provider' => [
-        'class' => \App\API\EloquentAPI\ShortenerBridge::class,
-    ],
+    'doctrine' => [
+        'class' => \Doctrine\ORM\EntityManager::class,
+        'calls' => [
+            [
+                'method' => 'clear'
+            ]
+        ],
+        'composition' => ['@doctrine_creator' => 'getEM'],
 
-    'shortener' => [
-        'class' => \App\AppUrlShortener\Shortener::class,
-        'arguments' => ['@shortener_provider', '@url_converter']
     ],
 ];

@@ -10,6 +10,7 @@
     "ext-readline": "*",
     "josantonius/json": "^2.0",
     "ext-curl": "*",
-    "illuminate/database": "10.*"
+    "doctrine/orm": "2.*",
+    "symfony/cache": "v6.*"
   }
 }
